@@ -1,15 +1,24 @@
 steps:
 
-    # build only the first stage, so we can run tests with it
+  # build only the first stage, so we can run tests with it
+  # このステップの目的は、アプリケーションのテストを実行するために利用できるコンテナをビルドすることである。
+  # id は、ビルドステップに人間が理解しやすいラベルを与える
   - id: build-test-image
+    # Git リポジトリ内で作業場所となるサブディレクトリを指定する
     dir: hello-cloudbuild
+    # このステップで実行するコンテナを識別する
     name: gcr.io/cloud-builders/docker
+    # コンテナ内で実行するコマンドを（デフォルトではない場合に）指定する
     entrypoint: bash
+    # エントリポイントとなるコマンドに引数を与える
     args:
       - -c
       - |
         docker image build --target build --tag demo:test .
+        # --target build 引数は Docker に対し、Dockerfile 内で FROM golang:1.11-alpine AS build という記述の下に定義されている部分のみをビルドする
 
+  # 上記ステップでは、使い捨てコンテナとはいえ demo:test というタグを付けたので、Cloud Build 内部におけるこのビルドの残りの部分でもそのまま利用できる。
+  # このステップでは、このコンテナを対象として go test を実行する。
   - id: run-tests
     dir: hello-cloudbuild
     name: gcr.io/cloud-builders/docker
@@ -19,6 +28,8 @@ steps:
       - |
         docker container run demo:test go test
 
+  # このステップでは docker build を再び実行するが、--target フラグは指定しない。
+  # そのため、マルチステージビルドの全体が実行され、最終的なアプリケーションコンテナが作成されることになる。
   - id: build-app
     dir: hello-cloudbuild
     name: gcr.io/cloud-builders/docker
@@ -28,8 +39,11 @@ steps:
       - |
         docker image build --tag gcr.io/${PROJECT_ID}/demo:${COMMIT_SHA} .
 
+  # 用意できたコンテナを実際にデプロイするために、今回の例では Helm チャートを使っている。
+  # helm template を実行して Kubernetes マニフェストを生成し、パイプ経由で kubeval ツールに渡してチェックする。
   - id: kubeval
     dir: hello-cloudbuild
+    # Helm には公式のコンテナイメージがないため、本書独自の Helm コンテナイメージを使う。
     name: cloudnatived/helm-cloudbuilder
     entrypoint: sh
     args:
@@ -37,5 +51,7 @@ steps:
       - |
         helm template ./k8s/demo/ | kubeval
 
+# パイプラインの実行が正常に完了すると、Cloud Build は結果として作成されたコンテナイメージを自動的にレジストリにパブリッシュ(アップロード)する。
+# パブリッシュしたいイメージの指定が以下。
 images:
   - gcr.io/${PROJECT_ID}/demo:${COMMIT_SHA}
