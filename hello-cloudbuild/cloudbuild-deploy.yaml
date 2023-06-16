@@ -1,5 +1,9 @@
 steps:
 
+  # このステップでは、${_CLOUDSDK_CORE_PROJECT} といった変数をいくつか参照する。
+  # これらの変数はパイプラインの実行時に、あらかじめ定義された値で置換される。
+  # また、GKE クラスタに変更を加えるのに必要となるパーミッションを Cloud Build のサービスアカウントに与える必要がある。
+  # 各自のプロジェクトについて GCP の IAM セクションで、Cloud Build のサービスアカウントに対して、IAM(Identity and Access Management)の Kubernetes Engine Developer という役割を許可する。
   - id: get-kube-config
     dir: hello-cloudbuild
     name: gcr.io/cloud-builders/kubectl
@@ -11,6 +15,7 @@ steps:
     args:
        - cluster-info
 
+  # デプロイのトリガに用いられたのと同じ Git タグでコンテナをタグ付けする。
   - id: update-deploy-tag
     dir: hello-cloudbuild
     name: gcr.io/cloud-builders/gcloud
@@ -39,3 +44,9 @@ steps:
       - --set
       - container.tag=${COMMIT_SHA}
       - ./k8s/demo
+
+# ここでは helm upgrade コマンドに追加のフラグを引き渡している。
+#   namespace アプリケーションのデプロイ先となる Namespace
+#   values    この環境で使用される Helm の値ファイル
+#   set container.image デプロイするコンテナ名の設定
+#   set container.tag   この特定のタグ（Git SHA）でのイメージのデプロイ
