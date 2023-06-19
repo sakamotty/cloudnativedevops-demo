@@ -19,7 +19,7 @@ func TestHandler(t *testing.T) {
 	}
 	//expected := "Hello, 世界\n"
 	//expected := "Hola, 世界\n"
-	expected := "Aloha, 世界\n"
+	expected := "Aloha, 世世世世界\n"
 	if rr.Body.String() != expected {
 		t.Errorf("handler returned unexpected body: got %v, want %v", rr.Body.String(), expected)
 	}
