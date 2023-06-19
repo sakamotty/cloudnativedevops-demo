@@ -16,6 +16,13 @@ steps:
        - cluster-info
 
   # デプロイのトリガに用いられたのと同じ Git タグでコンテナをタグ付けする。
+  #Step #1 - "update-deploy-tag": Do you want to continue (Y/n)?  
+  #Step #1 - "update-deploy-tag": ERROR: Error during upload of: gcr.io/cloud-native-devops-demo/demo:staging
+  #Step #1 - "update-deploy-tag": ERROR: (gcloud.container.images.add-tag) Not found: response: {'docker-distribution-api-version': 'registry/2.0', 'content-type': 'application/json', 'content-encoding': 'gzip', 'date': 'Mon, 19 Jun 2023 07:07:27 GMT', 'server': 'Docker Registry', 'cache-control': 'private', 'x-xss-protection': '0', 'x-frame-options': 'SAMEORIGIN', 'transfer-encoding': 'chunked', 'status': 404}
+  #Step #1 - "update-deploy-tag": Failed to fetch "3f0f0a204064d203ad46583453e4f72e776791ae" from request "/v2/cloud-native-devops-demo/demo/manifests/3f0f0a204064d203ad46583453e4f72e776791ae".: <no details provided>
+  #Finished Step #1 - "update-deploy-tag"
+  #ERROR
+  #ERROR: build step 1 "gcr.io/cloud-builders/gcloud" failed: step exited with non-zero status: 1
   - id: update-deploy-tag
     dir: hello-cloudbuild
     name: gcr.io/cloud-builders/gcloud
